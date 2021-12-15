@@ -1,0 +1,134 @@
+---
+title: "Grille d'évaluation"
+author: "Enseigner en classe hétérogène"
+date: "020.201 / 103.201"
+output:
+  officedown::rdocx_document:
+    reference_docx: template/template.docx
+    toc: no
+    toc_depth: 2
+    page_margins:
+      right: 0.98
+lang: fr
+toc-title: Table des matières
+params:
+  nom_prenom_loop: "Meugnier Claire"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(readxl)
+library(flextable)
+library(officer)
+library(tidyverse)
+library(knitr)
+library(lubridate)
+```
+
+```{r data}
+df <- read_excel("data/data.xlsx") # import le xlsx qui a tout.
+df <- df %>%
+  filter(nom_prenom==params$nom_prenom_loop)
+
+df$date_eval <- format(df$date_eval, "%d.%m.%Y")
+
+df$date_eval <- as.character.Date(df$date_eval)
+```
+
+```{r dataframe}
+# variante tableau dataframe
+
+col1 <- c("Nom, Prénom de l'étudiant·e :", "Équipe de formation")
+col2 <- c(df$nom_prenom, "Erica Borloz & Nicolas Bressoud")
+col3 <- c("Volée :", "Date d'évaluation :")
+col4 <- c(df$volee, df$date_eval)
+d <- data.frame(col1, col2, col3, col4)
+
+f_w <- 6.3/ncol(d)
+
+f <- flextable(d)
+f <- delete_part(x = f, part = "header")
+f <- width(f, width = f_w)
+f <- font(f, fontname="calibri")
+f <- border_remove(f)
+f <- border_inner_h(f, border = fp_border("#007553"), part = "body")
+f <- border_inner_v(f, border = fp_border("#007553"), part = "body")
+
+f
+
+```
+
+La synthèse ci-dessous se base sur votre inscription dans **le cours `r df$groupe` à `r df$cred` crédits**. La synthèse se base sur [les points obtenus aux travaux déposés sur Moodle](https://moodle.hepvs.ch/course/view.php?id=1871#section-3). Le détail de l'attribution des points est visible dans le carnet de notes du cours sur Moodle. [Le descriptif d'évaluation déposé sur Moodle](https://moodle.hepvs.ch/mod/folder/view.php?id=123435) définit et précise la procédure de certification.
+
+```{r syn}
+
+syn <- data.frame(
+  c("routine 1 : ","routine 2 : ","routine 3 : ", "routine 4 : "),
+  c(df$r1, df$r2, df$r3, df$r4),
+  c("routine 5 : ","routine 6 : ","routine 7 : ", "routine 8 : "),
+  c(df$r5, df$r6, df$r7, df$r8),
+  c("routine 9 : ","routine 10 : ","routine 11 : ", "routine 12 : "),
+  c(df$r9, df$r10, df$r11, df$r12)
+  )
+
+
+g_w <- 6.3/ncol(syn)
+
+g <- flextable(syn)
+g <- delete_part(x = g, part = "header")
+g <- width(g, width = g_w)
+g <- font(g, fontname="calibri")
+g <- border_remove(g)
+g <- border_inner_h(g, border = fp_border("#007553"), part = "body")
+g <- border_inner_v(g, border = fp_border("#007553"), part = "body")
+g <- align(g, i = NULL, j = NULL, align = "left", part = "body")
+
+g
+
+
+```
+
+Aux routines, on ajoute :
+
+```{r agdi}
+
+# boucle if pour la sortie di
+
+if (df$groupe=="103.201") {
+  di <- paste0("Votre résultat au dispositif instrumenté : ", df$di_coeff, " points (avec un coefficient 5 sur ", df$di," points au travail déposé).")
+  } else {
+    di <- "Vous n'avez pas eu besoin de présenter de dispositif instrumenté (DI)."
+    }
+
+```
+
+- Votre résultat à l'analyse globale est de `r df$ag_coeff` points (avec un coefficient 4 sur `r df$ag` points au travail déposé).
+
+- `r di`
+
+```{r}
+
+if (df$groupe=="020.201") {
+  rou <- "Dans le cas où vous avez proposé plus de 6 routines, le score global est toujours calculé sur les 6 meilleurs scores."
+} else {
+    rou <- ""
+  }
+
+```
+
+`r rou`
+
+Ceci correspond à un nombre de **`r df$points_obtenus`** sur un total possible de **`r df$points_totaux` points**. Ce score correspond à la qualification **`r df$note`**.
+
+Les commentaires précis sur chaque étape du processus d'évaluation sont visibles [dans les zones *ad hoc* de l'espace de cours Moodle](https://moodle.hepvs.ch/course/view.php?id=1871#section-3).
+
+*Lieu et date : St-Maurice, le `r df$date_eval`* 
+```{r img}
+img <- external_img("img/sign.png", width = 3, height = 0.86, alt = "")
+```
+*Signatures des membres de l'équipe de formation :*
+
+`r img`
+
+
